@@ -18,7 +18,7 @@ jobs:
 
     - name: Download latest firmware version from https://archive.raspberrypi.org/debian/
       id: download
-      run: echo "::set-output version=$(go run ./cmd/retrieve/main.go)"
+      run: echo "::set-output name=version::$(go run ./cmd/retrieve/main.go)"
     - name: echo
       run: echo ${{steps.download.version}}
 
