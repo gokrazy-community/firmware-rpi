@@ -28,8 +28,6 @@ const baseURL = "https://archive.raspberrypi.org/debian/"
 const packagesURL = baseURL + "dists/buster/main/binary-armhf/Packages"
 
 func run() error {
-	fmt.Println("1:1.20220308~buster-1") // for testing
-	return nil
 	dstFolder := filepath.Join(".", "dist")
 	os.RemoveAll(dstFolder) // ignore any error
 	if err := os.MkdirAll(dstFolder, 0755); err != nil {
