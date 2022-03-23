@@ -25,19 +25,26 @@ func main() {
 }
 
 const baseURL = "https://archive.raspberrypi.org/debian/"
-const packagesURL = baseURL + "/dists/buster/main/binary-armhf/Packages"
+const packagesURL = baseURL + "dists/buster/main/binary-armhf/Packages"
 
 func run() error {
+	fmt.Println("1:1.20220308~buster-1")
+	return nil
 	dstFolder := filepath.Join(".", "dist")
 	os.RemoveAll(dstFolder) // ignore any error
 	if err := os.MkdirAll(dstFolder, 0755); err != nil {
 		return err
 	}
 
-	fmt.Println("checking: " + packagesURL)
+	log.Println("checking:", packagesURL)
 	bootLoaderURL := ""
-	bootLoaderPrefix := "Filename: pool/main/r/raspberrypi-firmware/raspberrypi-bootloader"
+	bootLoaderPrefix := "Filename: pool/main/r/raspberrypi-firmware/raspberrypi-bootloader_"
+	version := ""
+	versionPrefix := "Version: "
 	err := scanOnlineTextFile(packagesURL, func(s string) bool {
+		if strings.HasPrefix(s, versionPrefix) {
+			version = s[len(versionPrefix):]
+		}
 		if strings.HasPrefix(s, bootLoaderPrefix) {
 			bootLoaderURL = baseURL + s[len("Filename: "):]
 			return true
@@ -51,7 +58,8 @@ func run() error {
 		return errors.New("could not find bootloader URL in package list")
 	}
 
-	fmt.Println("downloading: " + bootLoaderURL)
+	fmt.Println(version)
+	log.Println("downloading:", bootLoaderURL)
 	resp, err := http.Get(bootLoaderURL)
 	if err != nil {
 		return err
@@ -113,7 +121,7 @@ func extractFirmwareFiles(debSrc io.Reader, dstFolder string) error {
 			}
 			name := hdr.Name[len(bootPrefix):]
 			// write a file
-			fmt.Println("extracting: " + name)
+			log.Println("extracting: " + name)
 			err = writeFile(tr, filepath.Join(dstFolder, name))
 			if err != nil {
 				return err
