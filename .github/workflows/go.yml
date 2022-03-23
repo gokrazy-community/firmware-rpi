@@ -20,5 +20,5 @@ jobs:
       id: download
       run: echo "::set-output name=version::$(go run ./cmd/retrieve/main.go)"
     - name: echo
-      run: echo ${{steps.download.version}}
+      run: echo ${{steps.download.outputs.version}}
 
