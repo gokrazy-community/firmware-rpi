@@ -16,9 +16,12 @@ jobs:
       with:
         go-version: 1.18
 
-    - name: Download latest firmware version from https://archive.raspberrypi.org/debian/
+    - name: Download latest firmware files from https://archive.raspberrypi.org/debian/
       id: download
       run: echo "::set-output name=version::$(go run ./cmd/retrieve/main.go)"
-    - name: echo
-      run: echo ${{steps.download.outputs.version}}
-
+      
+      
+    - name: Commit the new firmware
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: firmware ${{steps.download.outputs.version}}
