@@ -25,7 +25,7 @@ func main() {
 }
 
 const baseURL = "https://archive.raspberrypi.org/debian/"
-const packagesURL = baseURL + "dists/buster/main/binary-armhf/Packages"
+const packagesURL = baseURL + "dists/bullseye/main/binary-armhf/Packages"
 
 func run() error {
 	dstFolder := filepath.Join(".", "dist")
