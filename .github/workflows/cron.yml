@@ -3,7 +3,7 @@ name: Go
 on:
   schedule:
     # daily, hour and minute chosen arbitrarily
-    - cron: "14 27 * * *"
+    - cron: "32 14 * * *"
 
 jobs:
   build:
