@@ -15,7 +15,7 @@ GOARCH=arm ./gokr-packer \
 go run cmd/retrieve/main.go
 ```
 
-It will retrieve the firmware from https://github.com/raspberrypi/firmware to the `dist` folder.
+It will retrieve the download the latest firmware files from https://archive.raspberrypi.org/debian/ and extract them to the `dist` folder.
 
 ## Licenses
 

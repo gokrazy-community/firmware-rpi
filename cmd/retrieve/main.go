@@ -1,15 +1,19 @@
 package main
 
 import (
-	"context"
+	"archive/tar"
+	"bufio"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
 	"path/filepath"
+	"strings"
 
-	"golang.org/x/sync/errgroup"
+	"github.com/blakesmith/ar"
+	"github.com/ulikunitz/xz"
 )
 
 func main() {
@@ -20,28 +24,8 @@ func main() {
 	}
 }
 
-const baseURL = "https://raw.githubusercontent.com/raspberrypi/firmware/c6d56567ff6ef17fd85159770f22abcf2c5953ed/boot/"
-
-var files = []string{
-	"LICENCE.broadcom",
-	"bootcode.bin",
-	"fixup.dat",
-	"fixup4.dat",
-	"fixup4cd.dat",
-	"fixup4db.dat",
-	"fixup4x.dat",
-	"fixup_cd.dat",
-	"fixup_db.dat",
-	"fixup_x.dat",
-	"start.elf",
-	"start4.elf",
-	"start4cd.elf",
-	"start4db.elf",
-	"start4x.elf",
-	"start_cd.elf",
-	"start_db.elf",
-	"start_x.elf",
-}
+const baseURL = "https://archive.raspberrypi.org/debian/"
+const packagesURL = baseURL + "/dists/buster/main/binary-armhf/Packages"
 
 func run() error {
 	dstFolder := filepath.Join(".", "dist")
@@ -50,29 +34,31 @@ func run() error {
 		return err
 	}
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
-	defer cancel()
-
-	ch := make(chan string, len(files))
-	for _, file := range files {
-		ch <- file
+	fmt.Println("checking: " + packagesURL)
+	bootLoaderURL := ""
+	bootLoaderPrefix := "Filename: pool/main/r/raspberrypi-firmware/raspberrypi-bootloader"
+	err := scanOnlineTextFile(packagesURL, func(s string) bool {
+		if strings.HasPrefix(s, bootLoaderPrefix) {
+			bootLoaderURL = baseURL + s[len("Filename: "):]
+			return true
+		}
+		return false
+	})
+	if bootLoaderURL == "" {
+		if err != nil {
+			return err
+		}
+		return errors.New("could not find bootloader URL in package list")
 	}
-	close(ch)
 
-	group, ctx := errgroup.WithContext(ctx)
-	const workers = 4
-	for i := 0; i < workers; i++ {
-		group.Go(func() error {
-			for file := range ch {
-				err := downloadFile(baseURL+file, filepath.Join(dstFolder, file))
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		})
+	fmt.Println("downloading: " + bootLoaderURL)
+	resp, err := http.Get(bootLoaderURL)
+	if err != nil {
+		return err
 	}
-	if err := group.Wait(); err != nil {
+	defer resp.Body.Close()
+	err = extractFirmwareFiles(resp.Body, dstFolder)
+	if err != nil {
 		return err
 	}
 
@@ -86,22 +72,88 @@ func run() error {
 	return nil
 }
 
-func downloadFile(src, dst string) error {
-	out, err := os.Create(dst)
+func extractFirmwareFiles(debSrc io.Reader, dstFolder string) error {
+
+	ar := ar.NewReader(debSrc)
+	var dataReader io.Reader
+	for {
+		header, err := ar.Next()
+		if err != nil {
+			return err
+		}
+		if header.Name == "data.tar.xz" {
+			dataReader = ar
+			break
+		}
+	}
+
+	r, err := xz.NewReader(dataReader)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
 
-	resp, err := http.Get(src)
+	// Create a tar Reader
+	tr := tar.NewReader(r)
+	// Iterate through the files in the archive.
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			// end of tar archive
+			break
+		}
+		if err != nil {
+			return err
+		}
+		switch hdr.Typeflag {
+		// case tar.TypeDir:
+		case tar.TypeReg, tar.TypeRegA:
+			bootPrefix := "./boot/"
+			if !strings.HasPrefix(hdr.Name, bootPrefix) {
+				continue
+			}
+			name := hdr.Name[len(bootPrefix):]
+			// write a file
+			fmt.Println("extracting: " + name)
+			err = writeFile(tr, filepath.Join(dstFolder, name))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func writeFile(r io.Reader, dst string) error {
+	w, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
+	defer w.Close()
 
+	_, err = io.Copy(w, r)
+	if err != nil {
+		return err
+	}
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func scanOnlineTextFile(url string, stopScanning func(string) bool) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
 	defer resp.Body.Close()
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return err
+
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		if stopScanning(scanner.Text()) {
+			break
+		}
 	}
-	return out.Close()
+	return scanner.Err()
 }
