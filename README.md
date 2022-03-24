@@ -1,10 +1,12 @@
-# Firmware for Raspberry Pi, for usage in gokrazy
+# Firmware for Raspberry Pi (from official bullseye repo)
 
-Usage
+This repository holds bootloader firmware files for the Raspberry Pi, downloaded from https://archive.raspberrypi.org/debian/, for usage by the [gokrazy](https://github.com/gokrazy/gokrazy) project.
+
+To use the files in this repository, adjust the `-firmware_package`
+of `gokr-packer`:
 
 ```
-GOARCH=arm ./gokr-packer \
-    -kernel_package=github.com/oliverpool/kernel-rpi-os-32/dist \
+GOARCH=arm gokr-packer \
     -firmware_package=github.com/oliverpool/firmware-rpi/dist \
     github.com/gokrazy/hello
 ```
