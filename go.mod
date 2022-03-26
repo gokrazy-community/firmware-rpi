@@ -1,4 +1,4 @@
-module github.com/oliverpool/firmware-rpi
+module github.com/gokrazy-community/firmware-rpi
 
 go 1.18
 

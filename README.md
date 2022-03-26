@@ -7,9 +7,15 @@ of `gokr-packer`:
 
 ```
 GOARCH=arm gokr-packer \
-    -firmware_package=github.com/oliverpool/firmware-rpi/dist \
+    -firmware_package=github.com/gokrazy-community/firmware-rpi/dist \
     github.com/gokrazy/hello
 ```
+
+## How does it differ from https://github.com/gokrazy/firmware ?
+
+https://github.com/gokrazy/firmware follows the `master` branch of https://github.com/raspberrypi/firmware
+
+Whereas this repo follows the latest release from https://archive.raspberrypi.org/debian/ (bullseye as of now).
 
 ## Manual retrieval
 
