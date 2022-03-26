@@ -15,7 +15,7 @@ GOARCH=arm gokr-packer \
 
 https://github.com/gokrazy/firmware follows the `master` branch of https://github.com/raspberrypi/firmware
 
-Whereas this repo follows the latest release from https://archive.raspberrypi.org/debian/ (bullseye as of now).
+Whereas this repo follows the latest release from https://archive.raspberrypi.org/debian/dists/bullseye/main/binary-armhf/.
 
 ## Manual retrieval
 

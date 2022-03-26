@@ -3,6 +3,7 @@ package main
 import (
 	"archive/tar"
 	"bufio"
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
@@ -25,7 +26,7 @@ func main() {
 }
 
 const baseURL = "https://archive.raspberrypi.org/debian/"
-const packagesURL = baseURL + "dists/bullseye/main/binary-armhf/Packages"
+const packagesURL = baseURL + "dists/bullseye/main/binary-armhf/Packages.gz"
 
 func run() error {
 	dstFolder := filepath.Join(".", "dist")
@@ -39,7 +40,7 @@ func run() error {
 	bootLoaderPrefix := "Filename: pool/main/r/raspberrypi-firmware/raspberrypi-bootloader_"
 	version := ""
 	versionPrefix := "Version: "
-	err := scanOnlineTextFile(packagesURL, func(s string) bool {
+	err := fetchAndScanGzTextFile(packagesURL, func(s string) bool {
 		if strings.HasPrefix(s, versionPrefix) {
 			version = s[len(versionPrefix):]
 		}
@@ -148,14 +149,19 @@ func writeFile(r io.Reader, dst string) error {
 	return nil
 }
 
-func scanOnlineTextFile(url string, stopScanning func(string) bool) error {
+func fetchAndScanGzTextFile(url string, stopScanning func(string) bool) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	scanner := bufio.NewScanner(resp.Body)
+	unzipped, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(unzipped)
 	for scanner.Scan() {
 		if stopScanning(scanner.Text()) {
 			break
