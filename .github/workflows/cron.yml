@@ -28,3 +28,9 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: firmware ${{steps.download.outputs.version}}
+          tagging_message: v1.0.0-${{steps.download.outputs.version}}
+
+      - name: Add blank commit every 55 days to keep cron alive
+        uses: gautamkrishnar/keepalive-workflow@v1 # using the workflow with default settings
+        with:
+          time_elapsed: 55

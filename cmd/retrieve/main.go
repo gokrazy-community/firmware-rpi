@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/blakesmith/ar"
@@ -57,7 +58,12 @@ func run() error {
 		return errors.New("could not find bootloader URL in package list")
 	}
 
+	version, _ = strings.CutPrefix(version, "1:")
+	if !regexp.MustCompile(`^\d+([.-]\d+)*$`).MatchString(version) {
+		return fmt.Errorf("invalid sematic version: %s", version)
+	}
 	fmt.Println(version)
+
 	log.Println("downloading:", bootLoaderURL)
 	resp, err := http.Get(bootLoaderURL)
 	if err != nil {
@@ -80,7 +86,6 @@ func run() error {
 }
 
 func extractFirmwareFiles(debSrc io.Reader, dstFolder string) error {
-
 	ar := ar.NewReader(debSrc)
 	var dataReader io.Reader
 	for {
