@@ -22,7 +22,7 @@ jobs:
         run: |
           # split lines to fail on exit != 0
           version="$(go run ./cmd/retrieve/main.go)"
-          echo "::set-output name=version::$version"
+          echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Commit the new firmware
         uses: stefanzweifel/git-auto-commit-action@v4
