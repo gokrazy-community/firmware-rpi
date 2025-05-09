@@ -1,4 +1,4 @@
-# Firmware for Raspberry Pi (from official bullseye repo)
+# Firmware for Raspberry Pi (from official bookworm repo)
 
 This repository holds bootloader firmware files for the Raspberry Pi, downloaded from https://archive.raspberrypi.org/debian/, for usage by the [gokrazy](https://github.com/gokrazy/gokrazy) project.
 
