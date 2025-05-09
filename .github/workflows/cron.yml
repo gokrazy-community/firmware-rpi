@@ -32,10 +32,10 @@ jobs:
           last_commit_timestamp=$(date -d "$last_commit_date" +%s)
           difference_seconds=$((current_date - last_commit_timestamp))
           difference_days=$((difference_seconds / (60 * 60 * 24)))
-          if [[ $difference_days -gt 45 ]]; then
-            echo "flag= --alow-empty" >> "$GITHUB_OUTPUT"
+          if [[ $difference_days -gt 2 ]]; then
+            echo "flag= --allow-empty" >> "$GITHUB_OUTPUT"
           else
-            echo "flag= --allow-empty-$difference_days" >> "$GITHUB_OUTPUT"
+            echo "flag=" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Commit the new firmware
