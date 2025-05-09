@@ -29,8 +29,3 @@ jobs:
         with:
           commit_message: firmware ${{steps.download.outputs.version}}
           tagging_message: v1.0.0-${{steps.download.outputs.version}}
-
-      - name: Add blank commit every 55 days to keep cron alive
-        uses: gautamkrishnar/keepalive-workflow@2.0.10
-        with:
-          time_elapsed: 55
