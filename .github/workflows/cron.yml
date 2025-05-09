@@ -24,8 +24,23 @@ jobs:
           version="$(go run ./cmd/retrieve/main.go)"
           echo "version=$version" >> $GITHUB_OUTPUT
 
+      - name: Check if last commit happened long ago
+        id: date_check
+        run: |
+          current_date=$(date -d "now" +%s)
+          last_commit_date=$(git log -1 --format=%as)
+          last_commit_timestamp=$(date -d "$last_commit_date" +%s)
+          difference_seconds=$((current_date - last_commit_timestamp))
+          difference_days=$((difference_seconds / (60 * 60 * 24)))
+          if [[ $difference_days -gt 45 ]]; then
+            echo "flag= --alow-empty" >> "$GITHUB_OUTPUT"
+          else
+            echo "flag= --allow-empty-$difference_days" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Commit the new firmware
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: firmware ${{steps.download.outputs.version}}
           tagging_message: v1.0.0-${{steps.download.outputs.version}}
+          commit_options:  ${{steps.date_check.outputs.flag}}
