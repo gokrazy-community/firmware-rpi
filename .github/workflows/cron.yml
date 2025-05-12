@@ -43,5 +43,5 @@ jobs:
         with:
           commit_message: firmware ${{steps.download.outputs.version}}
           tagging_message: v1.0.0-${{steps.download.outputs.version}}
-          skip_dirty_check: true # --allow-empty added below
-          commit_options:  ${{steps.date_check.outputs.flag}}
+          skip_dirty_check: ${{steps.date_check.outputs.flag}} # only when --allow-empty is added below
+          commit_options: ${{steps.date_check.outputs.flag}}
