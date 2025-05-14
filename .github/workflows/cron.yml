@@ -27,10 +27,9 @@ jobs:
       - name: Check if last commit happened long ago
         id: date_check
         run: |
-          current_date=$(date -d "now" +%s)
-          last_commit_date=$(git log -1 --format=%as)
-          last_commit_timestamp=$(date -d "$last_commit_date" +%s)
-          difference_seconds=$((current_date - last_commit_timestamp))
+          current_timestamp=$(date -d "now" +%s)
+          commit_timestamp=$(git log -1 --format=%ct)
+          difference_seconds=$((current_timestamp - commit_timestamp))
           difference_days=$((difference_seconds / (60 * 60 * 24)))
           if [[ $difference_days -gt 2 ]]; then
             echo "flag= --allow-empty" >> "$GITHUB_OUTPUT"
