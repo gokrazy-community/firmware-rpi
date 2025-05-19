@@ -30,7 +30,7 @@ jobs:
           current_timestamp=$(date -d "now" +%s)
           commit_timestamp=$(git log -1 --format=%ct)
           difference_seconds=$((current_timestamp - commit_timestamp))
-          difference_days=$((difference_seconds / (60 * 60 * 24)))
+          difference_days=$((difference_seconds / (60)))
           if [[ $difference_days -gt 2 ]]; then
             echo "flag= --allow-empty" >> "$GITHUB_OUTPUT"
           else
@@ -42,5 +42,5 @@ jobs:
         with:
           commit_message: firmware ${{steps.download.outputs.version}}
           tagging_message: v1.0.0-${{steps.download.outputs.version}}
-          skip_dirty_check: ${{steps.date_check.outputs.flag}} # only when --allow-empty is added below
+          skip_dirty_check: ${{ contains(steps.date_check.outputs.flag, '--'}} # only when --allow-empty is added below
           commit_options: ${{steps.date_check.outputs.flag}}
