@@ -15,7 +15,6 @@ import (
 	"strings"
 
 	"github.com/blakesmith/ar"
-	"github.com/ulikunitz/xz"
 )
 
 func main() {
@@ -27,7 +26,7 @@ func main() {
 }
 
 const baseURL = "https://archive.raspberrypi.org/debian/"
-const packagesURL = baseURL + "dists/bookworm/main/binary-armhf/Packages.gz"
+const packagesURL = baseURL + "dists/trixie/main/binary-armhf/Packages.gz"
 
 func run() error {
 	dstFolder := filepath.Join(".", "dist")
@@ -38,7 +37,7 @@ func run() error {
 
 	log.Println("checking:", packagesURL)
 	bootLoaderURL := ""
-	bootLoaderPrefix := "Filename: pool/main/r/raspberrypi-firmware/raspberrypi-bootloader_"
+	bootLoaderPrefix := "Filename: pool/main/r/raspi-firmware/raspi-firmware_"
 	version := ""
 	versionPrefix := "Version: "
 	err := fetchAndScanGzTextFile(packagesURL, func(s string) bool {
@@ -93,13 +92,13 @@ func extractFirmwareFiles(debSrc io.Reader, dstFolder string) error {
 		if err != nil {
 			return err
 		}
-		if header.Name == "data.tar.xz" {
+		if header.Name == "data.tar.gz" {
 			dataReader = ar
 			break
 		}
 	}
 
-	r, err := xz.NewReader(dataReader)
+	r, err := gzip.NewReader(dataReader)
 	if err != nil {
 		return err
 	}
@@ -117,9 +116,9 @@ func extractFirmwareFiles(debSrc io.Reader, dstFolder string) error {
 			return err
 		}
 		switch hdr.Typeflag {
-		// case tar.TypeDir:
+		//case tar.TypeDir:
 		case tar.TypeReg, tar.TypeRegA:
-			bootPrefix := "./boot/"
+			bootPrefix := "./usr/lib/raspi-firmware/"
 			if !strings.HasPrefix(hdr.Name, bootPrefix) {
 				continue
 			}
